@@ -1,36 +1,9 @@
 import { Box, Button, Text, TextField, Image } from "@skynexui/components";
+import React from "react";
+import { useRouter } from 'next/router';
 import appConfig from "../config.json";
 
-function GlobalStyle() {
-  return (
-    <style global jsx>{`
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        list-style: none;
-      }
-      body {
-        font-family: 'Inconsolata', monospace;
-      }
-      /* App fit Height */
-      html,
-      body,
-      #__next {
-        min-height: 100vh;
-        display: flex;
-        flex: 1;
-      }
-      #__next {
-        flex: 1;
-      }
-      #__next > * {
-        flex: 1;
-      }
-      /* ./App fit Height */
-    `}</style>
-  );
-}
+
 
 function Titulo(props) {
   const Tag = props.tag || "h1";
@@ -61,12 +34,23 @@ function Titulo(props) {
 // }
 // export default HomePage
 
-export default function PaginaInicial() {
-  const username = "Igoror12";
+function validar (palavra){ 
+  if (palavra.length <= 2){
+    console.log('essa palavra nao pode ser usada');
+  } 
+}
 
+
+export default function PaginaInicial() {
+  //const username = "igoror12";
+  const [username, setUsername] = React.useState("igoror12");
+  const roteamento = useRouter();
+
+  const validacao = validar(username);
+
+  //console.log(roteamento);
   return (
     <>
-      <GlobalStyle />
       <Box
         styleSheet={{
           display: "flex",
@@ -101,6 +85,12 @@ export default function PaginaInicial() {
           {/* Formulário */}
           <Box
             as="form"
+            onSubmit= {function (infosDoEvento){
+              infosDoEvento.preventDefault();
+              console.log('Alguem submeteu o form');
+              roteamento.push('/chat');
+              //window.location.href = '/chat';
+            }}
             styleSheet={{
               display: "flex",
               flexDirection: "column",
@@ -123,6 +113,15 @@ export default function PaginaInicial() {
             </Text>
 
             <TextField
+              value={username}
+              onChange={function (event) {
+                console.log("usuario digitou:", event.target.value);
+                //Onde está o valo?
+                const valor = event.target.value;
+                //Trocar o valor da variavel
+                // Através do REact e avise quem precisa
+                setUsername(valor,validacao);
+              }}
               fullWidth
               textFieldColors={{
                 neutral: {
@@ -165,9 +164,10 @@ export default function PaginaInicial() {
           >
             <Image
               styleSheet={{
-                border:`10px solid ${appConfig.theme.colors.neutrals[500]}`,
+                border: `10px solid ${appConfig.theme.colors.neutrals[500]}`,
                 borderRadius: "50%",
                 marginBottom: "16px",
+                display: (username.length <= 2) ? 'none' : 'flex'
               }}
               src={`https://github.com/${username}.png`}
             />
