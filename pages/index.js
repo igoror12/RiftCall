@@ -1,9 +1,7 @@
 import { Box, Button, Text, TextField, Image } from "@skynexui/components";
-import React from "react";
-import { useRouter } from 'next/router';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import appConfig from "../config.json";
-
-
 
 function Titulo(props) {
   const Tag = props.tag || "h1";
@@ -34,19 +32,41 @@ function Titulo(props) {
 // }
 // export default HomePage
 
-function validar (palavra){ 
-  if (palavra.length <= 2){
-    console.log('essa palavra nao pode ser usada');
-  } 
-}
-
-
 export default function PaginaInicial() {
   //const username = "igoror12";
-  const [username, setUsername] = React.useState("igoror12");
+  //Variaveis para receber a entrada do Usuário:
+  const [username, setUsername] = React.useState("");
   const roteamento = useRouter();
 
-  const validacao = validar(username);
+  //VAriavel p/ receber a resposta da API Rest de Dados do Usuário GITHUB:
+  const [dataUsuario, setDataUsuario] = useState({});
+
+  //Precisamos buscar os dados do usuário, toda vez que houver uma atualizacao no "username";
+  //vamos usar um hook useEffect do React.
+  useEffect(() => {
+    getDataUsuario();
+  }, [username]);
+
+  var gitHubUrl = `https://api.github.com/users/${username}`;
+
+  // Agora para obter a resposta da API de usuários do GitHub, vamos fazer uma requisição GET usando Fetch,
+  //que será o papel da função getUserData().
+  //getUserData() é uma função assíncrona , na qual fetch(gitHubUrl) faz a solicitação e retorna uma promessa.
+  //Quando a solicitação for concluída, a promessa será resolvida com o objeto de resposta .
+  //Esse objeto é basicamente um placeholder genérico para vários formatos de resposta.
+  const getDataUsuario = async () => {
+    const response = await fetch(gitHubUrl);
+    //response.json() é usado para extrair o objeto JSON da resposta, ele retorna uma promessa, daí o await.
+    const jsonData = await response.json();
+    if (jsonData && jsonData.message != "Not Found") {
+      setDataUsuario(jsonData);
+      console.log(jsonData);
+    } else if (username !== "") {
+      console.log("Username does not exist");
+    } else {
+      setDataUsuario({});
+    }
+  };
 
   //console.log(roteamento);
   return (
@@ -73,10 +93,10 @@ export default function PaginaInicial() {
               xs: "column",
               sm: "row",
             },
-            width: "80%",
-            maxWidth: "700px",
-            borderRadius: "5px",
-            padding: "32px",
+            width: "70%",
+            maxWidth: "600px",
+            borderRadius: "10px",
+            padding: "24px",
             margin: "16px",
             boxShadow: "0 2px 10px 0 rgb(0 0 0 / 20%)",
             backgroundColor: appConfig.theme.colors.neutrals[500],
@@ -85,11 +105,13 @@ export default function PaginaInicial() {
           {/* Formulário */}
           <Box
             as="form"
-            onSubmit= {function (infosDoEvento){
-              infosDoEvento.preventDefault();
-              console.log('Alguem submeteu o form');
-              roteamento.push('/chat');
-              //window.location.href = '/chat';
+            onSubmit={(e) => {
+              e.preventDefault();
+              console.log("Alguem submeteu o form");
+              roteamento.push({
+                pathname: "/chat",
+                //window.location.href = '/chat';
+              });
             }}
             styleSheet={{
               display: "flex",
@@ -105,7 +127,7 @@ export default function PaginaInicial() {
             <Text
               variant="body3"
               styleSheet={{
-                marginBottom: "32px",
+                marginBottom: "24px",
                 color: appConfig.theme.colors.neutrals[300],
               }}
             >
@@ -114,13 +136,14 @@ export default function PaginaInicial() {
 
             <TextField
               value={username}
+              placeholder="igoror12"
               onChange={function (event) {
                 console.log("usuario digitou:", event.target.value);
                 //Onde está o valo?
                 const valor = event.target.value;
                 //Trocar o valor da variavel
                 // Através do REact e avise quem precisa
-                setUsername(valor,validacao);
+                setUsername(valor);
               }}
               fullWidth
               textFieldColors={{
@@ -153,9 +176,9 @@ export default function PaginaInicial() {
               flexDirection: "column",
               alignItems: "center",
               maxWidth: "200px",
-              padding: "16px",
+              padding: "10px",
               backgroundColor: appConfig.theme.colors.neutrals["000"],
-              border: "1px solid",
+              border: "5px solid",
               borderColor: appConfig.theme.colors.neutrals[999],
               borderRadius: "10px",
               flex: 1,
@@ -164,23 +187,41 @@ export default function PaginaInicial() {
           >
             <Image
               styleSheet={{
-                border: `10px solid ${appConfig.theme.colors.neutrals[500]}`,
+                border: `9px solid ${appConfig.theme.colors.neutrals[500]}`,
                 borderRadius: "50%",
                 marginBottom: "16px",
-                display: (username.length <= 2) ? 'none' : 'flex'
               }}
-              src={`https://github.com/${username}.png`}
+              src={`${
+                username.length <= 2
+                  ? "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                  : `https://github.com/${username}.png`
+              }`}
             />
             <Text
               variant="body4"
               styleSheet={{
                 color: appConfig.theme.colors.neutrals[200],
                 backgroundColor: appConfig.theme.colors.neutrals[900],
-                padding: "3px 10px",
+                padding: "2px 2px",
                 borderRadius: "1000px",
               }}
             >
-              {username}
+              {username.length <= 2 ? "Usuário_none" : `@${username}`}
+            </Text>
+            <Text
+              variant="body4"
+              styleSheet={{
+                color: appConfig.theme.colors.neutrals["200"],
+                backgroundColor: appConfig.theme.colors.neutrals["900"],
+                padding: "2px 30px",
+                borderRadius: "1000px",
+                marginTop: "5px",
+                width: "50px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >{dataUsuario.location}
             </Text>
           </Box>
           {/* Photo Area */}
